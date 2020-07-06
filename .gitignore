@@ -1,6 +1,10 @@
 # Prerequisites
 *.d
 
+# The CMakeLists ignore files
+build/*
+./vscode/
+
 # Compiled Object files
 *.slo
 *.lo
