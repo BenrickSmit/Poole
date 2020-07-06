@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/home/gary/Documents/Coding/C++/Poole/build",
+  "command": "/usr/bin/g++   -I/home/gary/Documents/Coding/C++/Poole  -pthread -g   -std=gnu++17 -o CMakeFiles/Poole_Test.dir/src/main.cpp.o -c /home/gary/Documents/Coding/C++/Poole/src/main.cpp",
+  "file": "/home/gary/Documents/Coding/C++/Poole/src/main.cpp"
+},
+{
+  "directory": "/home/gary/Documents/Coding/C++/Poole/build",
+  "command": "/usr/bin/g++   -I/home/gary/Documents/Coding/C++/Poole  -pthread -g   -std=gnu++17 -o CMakeFiles/Poole_Test.dir/include/Poole/Poole.cpp.o -c /home/gary/Documents/Coding/C++/Poole/include/Poole/Poole.cpp",
+  "file": "/home/gary/Documents/Coding/C++/Poole/include/Poole/Poole.cpp"
+}
+]

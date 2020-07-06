@@ -1,0 +1,1 @@
+/usr/bin/g++  -pthread -g  -rdynamic CMakeFiles/Poole_Test.dir/src/main.cpp.o CMakeFiles/Poole_Test.dir/include/Poole/Poole.cpp.o  -o Poole_Test 
