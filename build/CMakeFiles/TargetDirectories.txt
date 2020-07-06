@@ -1,3 +1,0 @@
-/home/gary/Documents/Coding/C++/Poole/build/CMakeFiles/rebuild_cache.dir
-/home/gary/Documents/Coding/C++/Poole/build/CMakeFiles/edit_cache.dir
-/home/gary/Documents/Coding/C++/Poole/build/CMakeFiles/Poole_Test.dir
