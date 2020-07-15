@@ -1,6 +1,9 @@
 #include <iostream>
 #include <chrono>
 #include <string>
+#include <cmath>
+#include <ctime>
+#include <random>
 
 #include "include/Poole/Poole.h"
 
@@ -29,23 +32,71 @@ long summation(){
 	return total;
 }
 
+long long factorial(int input){
+	if (input == 1){
+		return 1;
+	}else{
+		return static_cast<long long>(input * factorial(input-1));
+	}
+}
+
+void wait_function(){
+	std::this_thread::sleep_for(std::chrono::seconds(15));
+}
+
+long long fibonacci(int value){
+	if ((value==1) || (value == 0)){
+		return value;
+	}else {
+		return static_cast<long long>(fibonacci(value-1) + fibonacci(value-2));
+	}
+}
+
+void sorting(){
+	srand(time(0));
+	std::vector<int> randoms;
+	for(auto i = 0; i < 10000; i++){
+		randoms.push_back(rand() % 1000000);
+	}
+
+	//Sort the random numbers
+	for(auto i = 0; i < randoms.size(); i++){
+		for(auto j = 0; j < randoms.size(); j++){
+			if(randoms.at(i) < randoms.at(j)){
+				auto temp = randoms.at(j);
+				randoms[j] = randoms.at(i);
+				randoms[i] = temp;
+			}
+		}
+	}
+}
+
+
+long summation_value = 0;
+long long factorial_value = 0;
+long long fibonacci_value = 0;
+
+
 int main(){
 	Poole thread_pool;
-	std::cout << "<START MAIN>" << std::endl;
-	std::cout << "Possible Threads: " << thread_pool.get_possible_threads() << std::endl;
-	int i=10, j = 10;
+	
+	int number = 40;
 
-	//Add the functions
-	thread_pool.add_function(function);
-	thread_pool.add_function([](){std::cout << "This was a passed LAMBDA function." << std::endl;}); 
-	thread_pool.add_function([](){function1(1234);});
-	thread_pool.add_function([](){function2("Saluton Mondo!");});
-	thread_pool.add_function([i,j](){function3(i, j);});
+	thread_pool.add_function([](){function();});
+	thread_pool.add_function([](){function1(777);});
+	thread_pool.add_function([](){function2("INPUT");});
+	thread_pool.add_function([](){function3(40,40);});
+	thread_pool.add_function([](){summation_value = summation(); std::cout << ">> SUMMATION: " << summation() << std::endl;});
+	thread_pool.add_function([number](){factorial_value = factorial(number); std::cout << ">> FACTORIAL("<<number<<"): " << factorial(number) << std::endl;});
+	thread_pool.add_function([number](){fibonacci_value = fibonacci(number); std::cout << ">> FIBONACCI("<<number<<"): " << fibonacci_value << std::endl;});
+	thread_pool.add_function([](){std::cout << ">> SORTING RANDOMS" << std::endl; sorting();});
 
-	std::cout << std::endl;
-	//std::cout << "TOTAL SUMMATION: " << summation() << std::endl;
+	thread_pool.wait();
+	thread_pool.force_shutdown();
 
-	thread_pool.stop_pool();
-	std::cout << "<FINISH MAIN>" << std::endl;
+	std::cout << "Summation Result: " << summation_value << std::endl;
+	std::cout << "Factorial Result: " << factorial_value << std::endl;
+	std::cout << "Fibonacci Result: " << fibonacci_value << std::endl;
+
 	return 0;
 }
