@@ -34,22 +34,50 @@ class ThreadInfo{
 class Poole {
 public:
 	//Ctor and Dtor
+	/**
+	 * @brief Construct a new Poole object
+	 */
     Poole();
+	/**
+	 * @brief Destroy the Poole object
+	 */
     ~Poole();
 
 	// Main interface with the program
+	/**
+	 * @brief This function adds a function to a list of functions to execute by an anonymous function.
+	 * 
+	 * @param function the function to execute later.
+	 */
     void add_function(std::function<void ()> function);    
 	
 	// Determines whether all the functions have finished executing
+	/**
+	 * @brief This function determines whether at least one thread is still executing.
+	 * 
+	 * @return true if at least one thread is executing.
+	 * @return false if all threads have finished executing.
+	 */
 	bool is_busy();
 
 	// Waits the execution of the main thread until all threads have finished computing.
+	/**
+	 * @brief wait until all threads have finished executing all functions in the pool.
+	 */
 	void wait();
 
 	// Forces the shutdown of the threads if necessary
+	/**
+	 * @brief force the shutdown of the threads and remove all functions in the pool.
+	 */
 	void force_shutdown();
 
 	// Display the total possible threads for the system
+	/**
+	 * @brief Get the possible threads supported by the system.
+	 * 
+	 * @return int 
+	 */
 	int get_possible_threads();
 
 private:
@@ -58,17 +86,29 @@ private:
 	Poole(const Poole&&) = delete;
 
 	// Initialise the threads and the exit condition
+	/**
+	 * @brief setup all the member variables correctly.
+	 */
 	void init();
+
 	// Ensure a safe ending for the threads
+	/**
+	 * @brief The internal function used by both the dtor and force_shutdown();
+	 * 
+	 */
 	void force_thread_stop();
 
 	// The infinite loops that ensure the functions get executed
+	/**
+	 * @brief an event loop that obtains a function and executes it.
+	 * 
+	 * @param id an int value used to identify the thread executing it.
+	 */
 	void infinite_event_loop(int id = 0);
 
     // The Poole of threads and their information
     std::map<int, std::thread> m_worker_threads;
 	std::map<int, ThreadInfo> m_worker_thread_info;
-	//std::vector<std::thread> m_worker_threads;
  
     // The Poole of functions to execute
     std::deque<std::function<void()>> m_function_tasks;

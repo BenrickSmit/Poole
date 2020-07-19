@@ -1,11 +1,11 @@
 #include "Poole.h"
 
-// the constructor just launches some amount of m_worker_threads
+// The Constructor creates the Threads and sets some objects used by the pool
 Poole::Poole(){
     init();
 }
    
-// the destructor joins all threads
+// The Deconstructor uses the same method as the force_shutdown method and joins all threads
 Poole::~Poole(){
     // Finish the thread execution
     force_thread_stop();
@@ -18,9 +18,10 @@ void Poole::init(){
     m_stop_Poole = false;
     m_has_stopped = false;
 
+    // How many threads are possible on the current hardware
     m_total_possible_threads = std::thread::hardware_concurrency();
 
-    // Create the threads
+    // Create the threads and the thread information
     for(auto i = 0; i < m_total_possible_threads; ++i){
         // Create the thread information for use
         ThreadInfo thread_info;
@@ -28,13 +29,14 @@ void Poole::init(){
         thread_info.set_busy_status(false);
         thread_info.set_finished_status(false);
 
+        // Create the thread that will wait on functions
         m_worker_threads.insert({i, std::thread([this](){this->infinite_event_loop();})});
         m_worker_thread_info.insert({i, thread_info});
-        //m_worker_threads.push(std::thread([this](){this->infinite_event_loop();}));
     }
 }
 
 
+// Forces the threads to join, and removes all functions in the queue
 void Poole::force_thread_stop() {
     // stop all threads
     if(m_has_stopped == false){
@@ -58,20 +60,21 @@ void Poole::force_thread_stop() {
     }
 }
 
-// add new work item to the Poole
+// Add new functions to the pool in a thread-safe method
 void Poole::add_function(std::function<void()> function_to_add){
-    { // Ensure no other functions are added to the queue
+    { // Ensure no other functions are added to the queue while this function is added; Ensures thread-safety
         std::unique_lock<std::mutex> lock(m_queue_mutex);
     
         // Append the function for use
         m_function_tasks.push_back(std::bind(function_to_add));
-    } // Release the mutex
+    } // Release the mutex (for thread-safety)
      
-    // Wake up one thread to execute the function
+    // Wake up one thread to execute the function just appended. Works on a FIFO principle.
     m_condition.notify_one();
 }
 
 
+// Determines whether at least one function is busy executing.
 bool Poole::is_busy() {
     // Look through the ThreadInfo structures to see whether the threads are busy
     // executing. If they are, return true
@@ -90,6 +93,7 @@ bool Poole::is_busy() {
 }
 
 
+// Wait until is_busy is true, to ensure some functions which need to be finished executing before continuing the program are finished.
 void Poole::wait() {
     // This function will stop the execution of the main thread for a bit
     // while it ensures that no other functions are executing. It helps
@@ -103,16 +107,19 @@ void Poole::wait() {
 }
 
 
+// Forces the threads to stop executing before the ctor is done.
 void Poole::force_shutdown() {
     // Forcefully "call the dtor"
     force_thread_stop();
 }
 
 
+// Returns the number of threads possible on the current hardware.
 int Poole::get_possible_threads() {
     return m_total_possible_threads;
 }
 
+// An event loop which looks for new functions added to the pool.
 void Poole::infinite_event_loop(int id){
     std::function<void()> function_to_execute;
     while(true){
