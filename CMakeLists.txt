@@ -1,19 +1,44 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+##------------------------------------------------------------------------------
+## SECTION: Set Variables
+##------------------------------------------------------------------------------
+## Set some settings for the builder
+set(BOOL_CREATE_TESTS ON)
+set(BOOL_CREATE_EXECUTABLE ON)
+set(BOOL_CREATE_LIBRARY OFF)
 
-project("Poole_Test")
+## Obtain the project's base name and version number
+file(STRINGS "build_info/build_name.txt" STRING_PROJECT_NAME)
+file(STRINGS "build_info/build_version.txt" STRING_PROJECT_VERSION)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
-    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	set(warnings "-Wall -Wextra ")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	set(warnings "/W4 /WX ")
+## Basic CMAKE Project Settings
+cmake_minimum_required (VERSION 3.15 FATAL_ERROR)
+project(${STRING_PROJECT_NAME} VERSION "${STRING_PROJECT_VERSION}")
+
+##------------------------------------------------------------------------------
+## SECTION: Add the required files to source
+##------------------------------------------------------------------------------
+## Add the source files to the executable
+include_directories(includes)
+include_directories(lib)
+add_subdirectory(src)
+
+##------------------------------------------------------------------------------
+## SECTION: Enable testing on the project
+##------------------------------------------------------------------------------
+if(${BOOL_CREATE_TESTS})
+    ## Enable Testing of the Program
+    enable_testing()
+
+    ## Add the Google Test (gtest) unit testing framework
+    add_subdirectory(lib/googletest-release-1.10.0 EXCLUDE_FROM_ALL)
+    ## Prevent overriding the parent project's compiler/linker settings on Windows
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    
+    ## Add the Unit Tests
+    add_subdirectory(tests)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${warnings}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${warnings} -pg")
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "-pthread")
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-add_executable(Poole_Test src/main.cpp include/Poole/Poole.h include/Poole/Poole.cpp)
+##-----------------------------------------------------------------------------=
+## SECTION: Create Bin directory
+##------------------------------------------------------------------------------
+file(MAKE_DIRECTORY bin)
