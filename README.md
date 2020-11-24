@@ -1,4 +1,4 @@
-# GeneralCXXTemplate
+# Poole
 An all encompassing C++ Project template file structure for my needs. It allows the addition of 
 Libraries, Google Test as well as Boost with CMake and CPack
 
@@ -16,7 +16,7 @@ build_info contains the build_name, build_version, and build_cxx_standard text f
 build_name contains the project name. build_version contains the project version number. build_cxx_standard contains
 the CXX standard used, it's default is 11
 
-Find the project [here](https://github.com/BenrickSmit/GeneralCXXTemplate), if you did not find this project on my github.
+Find the project [here](https://github.com/BenrickSmit/Poole), if you did not find this project on my github.
 
 # Features
 This states the current features provided by the program

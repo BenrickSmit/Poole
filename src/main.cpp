@@ -29,7 +29,7 @@
 #include <ctime>
 #include <random>
 
-#include "include/Poole/Poole.h"
+#include "Poole.h"
 
 void function(){
 	std::cout << "This is a normal function with no arguments" << std::endl;
@@ -114,7 +114,6 @@ int main(){
 	thread_pool.add_function([number](){factorial_value = factorial(number); std::cout << ">> FACTORIAL("<<number<<"): " << factorial(number) << std::endl;});
 	thread_pool.add_function([number](){fibonacci_value = fibonacci(number); std::cout << ">> FIBONACCI("<<number<<"): " << fibonacci_value << std::endl;});
 	thread_pool.add_function([](){std::cout << ">> SORTING RANDOMS" << std::endl; sorting();});
-	thread_pool.add_function(function1(777));
 
 	thread_pool.wait();
 	thread_pool.force_shutdown();

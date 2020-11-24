@@ -2,8 +2,8 @@
 *.d
 
 # The CMakeLists ignore files
-build/*
-./vscode/
+build
+.vscode
 
 # Compiled Object files
 *.slo
