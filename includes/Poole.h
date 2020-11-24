@@ -66,7 +66,8 @@ public:
 
 	// Main interface with the program
 	/**
-	 * @brief This function adds a function to a list of functions to execute by an anonymous function.
+	 * @brief This function adds a function to a list of functions that can be executed by random
+	 * thread.
 	 * 
 	 * @param function the function to execute later.
 	 */
@@ -89,7 +90,8 @@ public:
 
 	// Forces the shutdown of the threads if necessary
 	/**
-	 * @brief force the shutdown of the threads and remove all functions in the pool.
+	 * @brief force the shutdown of the threads and remove all functions in the pool. This may
+	 * cause some memory problems.
 	 */
 	void force_shutdown();
 

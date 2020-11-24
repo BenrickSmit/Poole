@@ -96,15 +96,15 @@ void sorting(){
 }
 
 
-long summation_value = 0;
-long long factorial_value = 0;
-long long fibonacci_value = 0;
+int64_t summation_value = 0;
+int64_t factorial_value = 0;
+int64_t fibonacci_value = 0;
 
 
 int main(){
 	Poole thread_pool;
 	
-	int number = 40;
+	int number = 120;
 
 	thread_pool.add_function([](){function();});
 	thread_pool.add_function([](){function1(777);});
