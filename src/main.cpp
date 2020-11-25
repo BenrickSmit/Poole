@@ -47,8 +47,8 @@ void function3(long i, long j){
 	std::cout << "This is a normal function with two arguments: " << i << ", " << j << std::endl;
 }	
 
-long summation(){
-	long total = 0;
+uint64_t summation(){
+	uint64_t total = 0;
 	for (auto i = 0; i < 1000; i++){
 		std::this_thread::sleep_for(std::chrono::microseconds(10));
 		total += i;
@@ -56,11 +56,11 @@ long summation(){
 	return total;
 }
 
-long long factorial(int input){
+uint64_t factorial(uint64_t input){
 	if (input == 1){
 		return 1;
 	}else{
-		return static_cast<long long>(input * factorial(input-1));
+		return static_cast<uint64_t>(input * factorial(input-1));
 	}
 }
 
@@ -68,7 +68,7 @@ void wait_function(){
 	std::this_thread::sleep_for(std::chrono::seconds(15));
 }
 
-long long fibonacci(int value){
+uint64_t fibonacci(int value){
 	if ((value==1) || (value == 0)){
 		return value;
 	}else {
@@ -78,7 +78,7 @@ long long fibonacci(int value){
 
 void sorting(){
 	srand(time(0));
-	std::vector<int> randoms;
+	std::vector<uint64_t> randoms;
 	for(auto i = 0; i < 10000; i++){
 		randoms.push_back(rand() % 1000000);
 	}
@@ -95,16 +95,36 @@ void sorting(){
 	}
 }
 
+bool is_prime(unsigned long long input){
+	bool to_return = false;
+	// No divisible by 5, potentially a prime
+	if(input % 5 != 0){
+		// The tens should not be 0,2,4,6,8
+		if(input % 2 != 0){
+			int square = std::sqrt(input);
+			if (square % 2 == 0)
+				to_return = true;
+			//ERROR: NOT REALLY, but I don't really care.
+		}else{
+			return to_return;
+		}
+	}
 
-int64_t summation_value = 0;
-int64_t factorial_value = 0;
-int64_t fibonacci_value = 0;
+	srand(time(0));
+	std::this_thread::sleep_for(std::chrono::milliseconds(rand()%10));
+
+	return to_return;
+}
+
+uint64_t summation_value = 0;
+uint64_t factorial_value = 0;
+uint64_t fibonacci_value = 0;
 
 
 int main(){
 	Poole thread_pool;
-	
-	int number = 120;
+	/*
+	int number = 65;
 
 	thread_pool.add_function([](){function();});
 	thread_pool.add_function([](){function1(777);});
@@ -114,13 +134,24 @@ int main(){
 	thread_pool.add_function([number](){factorial_value = factorial(number); std::cout << ">> FACTORIAL("<<number<<"): " << factorial(number) << std::endl;});
 	thread_pool.add_function([number](){fibonacci_value = fibonacci(number); std::cout << ">> FIBONACCI("<<number<<"): " << fibonacci_value << std::endl;});
 	thread_pool.add_function([](){std::cout << ">> SORTING RANDOMS" << std::endl; sorting();});
+*/
+	for (int i = 0; i < 100; i++){
+		thread_pool.add_function([i](){is_prime(i);});
+	}
+	for (int i = 0; i < 40; i++){
+		thread_pool.add_function([i](){fibonacci(i);});
+	}
 
 	thread_pool.wait();
 	thread_pool.force_shutdown();
+	
+	for(auto i = 0; i < thread_pool.get_thread_total_tasks().size(); i++){
+		std::cout << "Thread " << (i < 10 ? "0":"") << i << " : " << thread_pool.get_thread_total_tasks().at(i) << " tasks completed, " << thread_pool.get_thread_uptimes().at(i) << " ms " << std::endl;
+	}
 
-	std::cout << "Summation Result: " << summation_value << std::endl;
-	std::cout << "Factorial Result: " << factorial_value << std::endl;
-	std::cout << "Fibonacci Result: " << fibonacci_value << std::endl;
+	//std::cout << "Summation Result: " << summation_value << std::endl;
+	//std::cout << "Factorial Result: " << factorial_value << std::endl;
+	//std::cout << "Fibonacci Result: " << fibonacci_value << std::endl;
 
 	return 0;
 }

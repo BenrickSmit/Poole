@@ -29,27 +29,32 @@
 #include <map>
 #include <vector>
 #include <functional>
+#include <chrono>
  
-// ADD the following functionality
-// - Thread Information
-// - A function to ensure another function can see whether the threads have finished executing
-// - Adding in std::map instead of std::vector();
 class ThreadInfo{
 	public:
 	// Getters
 	bool get_busy_status(){return m_is_busy;}
 	bool get_finished_status(){return m_is_finished;}
 	int get_id(){return m_thread_id;}
+	uint get_uptime() {return std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::system_clock::now() - m_start_time).count();}
+	uint64_t get_total_tasks() {return m_total_tasks;}
+	void add_finished_task() {m_total_tasks+=1;}
+	void reset_finished_tasks() {m_total_tasks = 0;}
 	
 	void set_busy_status(bool value) {m_is_busy = value;}
 	void set_finished_status(bool value) {m_is_finished = value;}
 	void set_id(int value) {m_thread_id = value;}
+	void set_start_time() {m_start_time = std::chrono::system_clock::now();}
 	
 	// Setters
 	private:
 	bool m_is_busy;
 	bool m_is_finished;
 	int m_thread_id;
+	std::chrono::_V2::system_clock::time_point m_start_time;
+	unsigned long long m_total_tasks;
 };
 
 class Poole {
@@ -103,6 +108,34 @@ public:
 	 */
 	int get_possible_threads();
 
+	// Thread Information
+	/**
+	 * @brief Get the total tasks completed by an individual thread
+	 * 
+	 * @param position demarcates the index of the thread
+	 * @return unsigned long long indicating the number of tasks completed
+	 */
+	unsigned long long get_total_tasks_at(int id);
+	/**
+	 * @brief Get the uptime of an individual thread in milliseconds
+	 * 
+	 * @param position demarcates the index of the thread
+	 * @return unsigned long long indicating the uptime in milliseconds
+	 */
+	unsigned long long get_uptime_at(int id);
+	/**
+	 * @brief Get the thread uptimes for all threads available
+	 * 
+	 * @return std::vector<unsigned long long> a vector of all uptimes
+	 */
+	std::vector<unsigned long long> get_thread_uptimes();
+	/**
+	 * @brief Get the total tasks completed for all threads available
+	 * 
+	 * @return std::vector<unsigned long long> a vector of all tasks completed
+	 */
+	std::vector<unsigned long long> get_thread_total_tasks();
+
 private:
 	// Delete certain functions
 	Poole(const Poole*) = delete;
@@ -137,10 +170,10 @@ private:
     std::deque<std::function<void()>> m_function_tasks;
  
     // Ensure the threads use the queue in a thread-safe manner
-    std::mutex m_queue_mutex;
+    mutable std::mutex m_queue_mutex;
     std::condition_variable m_condition;
 	std::condition_variable m_finished_condition;
-    bool m_stop_Poole;
+    bool m_stop_poole;
 	int m_total_possible_threads;
 
 	bool m_has_stopped;

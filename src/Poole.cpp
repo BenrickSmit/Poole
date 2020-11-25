@@ -39,11 +39,14 @@ Poole::~Poole(){
 //Initialises the thread Poole
 void Poole::init(){
     // Ensure the program continues
-    m_stop_Poole = false;
+    m_stop_poole = false;
     m_has_stopped = false;
 
     // How many threads are possible on the current hardware
     m_total_possible_threads = std::thread::hardware_concurrency();
+    if (m_total_possible_threads < 1){
+        m_total_possible_threads = 1;
+    }
 
     // Create the threads and the thread information
     for(auto i = 0; i < m_total_possible_threads; ++i){
@@ -52,6 +55,8 @@ void Poole::init(){
         thread_info.set_id(i);
         thread_info.set_busy_status(false);
         thread_info.set_finished_status(false);
+        thread_info.set_start_time();
+        thread_info.reset_finished_tasks();
 
         // Create the thread that will wait on functions
         m_worker_threads.insert({i, std::thread([this](){this->infinite_event_loop();})});
@@ -64,7 +69,7 @@ void Poole::init(){
 void Poole::force_thread_stop() {
     // stop all threads
     if(m_has_stopped == false){
-        m_stop_Poole = true;
+        m_stop_poole = true;
         m_condition.notify_all();
      
         // join them
@@ -77,7 +82,7 @@ void Poole::force_thread_stop() {
 
         //Ensure the function Poole is empty
         if(!m_function_tasks.empty()){
-        m_function_tasks.clear();
+            m_function_tasks.clear();
         }
 
         m_has_stopped = true;
@@ -91,10 +96,10 @@ void Poole::add_function(std::function<void()> function_to_add){
     
         // Append the function for use
         m_function_tasks.push_back(std::bind(function_to_add));
+        // Wake up one thread to execute the function just appended. Works on a FIFO principle.
+        m_condition.notify_one();
     } // Release the mutex (for thread-safety)
-     
-    // Wake up one thread to execute the function just appended. Works on a FIFO principle.
-    m_condition.notify_one();
+    //m_condition.notify_one();
 }
 
 
@@ -143,6 +148,39 @@ int Poole::get_possible_threads() {
     return m_total_possible_threads;
 }
 
+
+unsigned long long Poole::get_total_tasks_at(int id) {
+    return m_worker_thread_info.find(id)->second.get_total_tasks();
+}
+
+
+unsigned long long Poole::get_uptime_at(int id) {
+    return m_worker_thread_info.find(id)->second.get_uptime();
+}
+
+
+std::vector<unsigned long long> Poole::get_thread_uptimes() {
+    std::vector<unsigned long long> to_return;
+
+    for (auto i = 0; i < get_possible_threads(); i++){
+        to_return.push_back(m_worker_thread_info.find(i)->second.get_uptime());
+    }
+
+    return to_return;
+}
+
+
+std::vector<unsigned long long> Poole::get_thread_total_tasks() {
+    std::vector<unsigned long long> to_return;
+
+    for (auto i = 0; i < get_possible_threads(); i++){
+        to_return.push_back(m_worker_thread_info.find(i)->second.get_total_tasks());
+    }
+
+    return to_return;
+}
+
+
 // An event loop which looks for new functions added to the pool.
 void Poole::infinite_event_loop(int id){
     std::function<void()> function_to_execute;
@@ -151,13 +189,16 @@ void Poole::infinite_event_loop(int id){
             std::unique_lock<std::mutex> lock(m_queue_mutex);
              
             // Find a function to execute if it exists
-            while(!m_stop_Poole && m_function_tasks.empty())
-            { // if there are none wait for notifications
+            while(!m_stop_poole && m_function_tasks.empty()){ 
+                // if there are none wait for notifications
                 m_condition.wait(lock);
+                //m_condition.wait(lock, [&](){return !m_stop_poole || m_function_tasks.empty();});
             }
  
+            
+
             // Exit the Poole if forced to stop
-            if(m_stop_Poole)
+            if(m_stop_poole)
                 return;
  
             // Get the function from the queue
@@ -167,17 +208,18 @@ void Poole::infinite_event_loop(int id){
         }   // Release lock on the mutex
  
         // Set the information for the ThreadInfo object
-            std::unique_lock<std::mutex> latch(m_queue_mutex);
+            //std::unique_lock<std::mutex> latch(m_queue_mutex);
             m_worker_thread_info.find(id)->second.set_busy_status(true);
             m_worker_thread_info.find(id)->second.set_finished_status(false);
-
+            
         // Execute the function
         function_to_execute();
 
         // Update the thread information for use
             m_worker_thread_info.find(id)->second.set_busy_status(false);
             m_worker_thread_info.find(id)->second.set_finished_status(true);
-            latch.unlock();
+            m_worker_thread_info.find(id)->second.add_finished_task();
+            //latch.unlock();
             m_finished_condition.notify_one();
     }
 }   
