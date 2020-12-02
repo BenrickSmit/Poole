@@ -66,7 +66,7 @@ if(${BOOL_CREATE_LIBRARY})
     add_library(${PROJECT_NAME}_lib STATIC ${EXEC_FILE_SOURCES})
     ## Allow for threads
     target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
-    
+
     ## If the file is successfully created, move it to bin and create a dir
     ## for the current lib_<compiler>_<OS>_<version>
     set(LIB_LOCATION ${CMAKE_SOURCE_DIR}/build/src/${PROJECT_NAME}_lib)

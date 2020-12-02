@@ -13,7 +13,8 @@
 ~ Bugfix: Greedy Thread problem with a full rewrite.
 ~ Add in counter for total jobs completed by all threads
 ~ Separate test functions from main.cpp
-
+~ Add variable size threadpool in specification
+~ Add library creation during compilation
 
 To Add:
 ============
@@ -21,5 +22,4 @@ To Add:
 ~ Keep old methods for Beginners
 ~ Enable Thread Initialisation with Static Functions
 ~ Template Function to add non-void functions without lambdas
-~ Add specification for number of threads to create
 ~ Add in tests for the test functions and Poole execution

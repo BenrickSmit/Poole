@@ -18,7 +18,8 @@
  * @date: 20 June 2020
  * @modified: 25 November 2020
  * 
- * @brief: This is the main class implementation using std::deque, std:condition_variable, std::map, and std::thread.
+ * @brief: This contains the implementation of the Poole class for concurrency
+ *          in c++11/14
  * 
  */ 
 

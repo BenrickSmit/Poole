@@ -18,8 +18,8 @@
  * @date: 20 June 2020
  * @modified: 25 November 2020
  * 
- * @brief: This is the main class interface with documentation for how to use the thread pool class.
- * 
+ * @brief: This contains the header information and interface for the Poole
+ * 			class which enables concurrency in C++11/14
  */ 
 
 #pragma once

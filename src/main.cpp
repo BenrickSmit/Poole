@@ -16,9 +16,10 @@
  * @author: Benrick Smit
  * @email: metatronicprogramming@hotmail.com
  * @date: 20 June 2020
- * @modified: 20 June 2020
+ * @modified: 2 December 2020
  * 
- * @brief: This is the main class which gives some function examples and how to use them with the Thread Pool class
+ * @brief: This is the main class which gives some function examples and how to 
+ * use them with the Poole class to allow for concurrency.
  * 
  */ 
 
