@@ -43,7 +43,7 @@ public:
 	/**
 	 * @brief Construct a new Poole object
 	 */
-    Poole();
+    Poole(int32_t total_threads = -1);
 	/**
 	 * @brief Destroy the Poole object
 	 */
@@ -71,12 +71,21 @@ public:
 	void wait();
 
 	/**
-	 * @brief This function checks the available thread info 
+	 * @brief This function checks the available thread info to determine whether
+	 * 			all threads are finished executing
 	 * 
 	 * @return true if at least one thread is busy
 	 * @return false if no threads are busy
 	 */
 	bool is_done();
+
+	/**
+	 * @brief this function checks the available thread info to determine whether
+	 * 			any thread is still executing
+	 * 
+	 * @return true if all threads are finished
+	 * @return false if at least one thread is busy
+	 */
 	bool is_busy();
 
 	// Display the total possible threads for the system
@@ -132,7 +141,7 @@ private:
 	/**
 	 * @brief setup all the member variables correctly.
 	 */
-	void init();
+	void init(int32_t total_threads);
 
 	/**
 	 * @brief This the infinite loop that looks for jobs to execute per thread

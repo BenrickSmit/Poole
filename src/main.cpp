@@ -37,7 +37,8 @@
 
 int main(){
 	std::cout << "<STARTING EXECUTION>" << std::endl;
-	Poole thread_pool;
+	int32_t threads_wanted = 1;
+	Poole thread_pool = Poole(threads_wanted);
 	std::list<uint64_t> prime_list;
 	std::list<uint64_t> prime_brute_list;
 	/*
@@ -56,27 +57,15 @@ int main(){
 	thread_pool.add_function([](){std::cout << ">> SORTING RANDOMS" << std::endl; sorting();});
 */
 	// scan the prime_list for true primes
+	std::cout << "Total Threads Asked For: " << threads_wanted << std::endl;
+	std::cout << "Total Threads Created: " << thread_pool.get_possible_threads() << std::endl;
 	for(auto i = 0; i < 102; i++){
 		//if(is_prime(i, prime_list)){
 		//	prime_list.push_back(i);
 		//}
 		is_prime(i, prime_list);
 	}
-	for(auto i = 0; i < 102; i++){
-		is_prime_brute_force(i, prime_brute_list);
-	}
 	
-	std::cout << "Brute Forced:" << std::endl;
-	std::cout << "=================" << std::endl;
-	for(auto i : prime_brute_list){
-		std::cout << i << std::endl;
-	}
-	std::cout << "" << std::endl;
-	std::cout << "Elegant Method:" << std::endl; 
-	std::cout << "=================" << std::endl;
-	for (auto i : prime_list) {
-		std::cout << i << std::endl;
-	}
 
 	std::cout << "<FINISHED EXECUTION>" << std::endl;
 	return 0;

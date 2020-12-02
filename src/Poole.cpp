@@ -25,8 +25,8 @@
 #include "Poole.h"
 
 // The Constructor creates the Threads and sets some objects used by the pool
-Poole::Poole(){
-    init();
+Poole::Poole(int32_t total_threads){
+    init(total_threads);
 }
    
 // The Deconstructor uses the same method as the force_shutdown method and joins all threads
@@ -56,18 +56,29 @@ void Poole::add_function(std::function<void()> function_to_add) {
 
 
 //Initialises the thread Poole
-void Poole::init(){
+void Poole::init(int32_t total_threads){
     // Ensure the program continues
     m_stop_processing = false;
     m_emergency_stop = false;
     m_paused = false;
 
-    // How many threads are possible on the current hardware
-    uint32_t possible_threads = std::thread::hardware_concurrency();
-    if (possible_threads < 1){
-        possible_threads = 1;
+    // Set the number of threads based on a few factors:
+    // - There needs to be at least 1 thread
+    // - Any negative threads default to the total capable by the hardware
+    // - The specified number should be between 1 - MAX_POSSIBLE_THREADS
+    int32_t possible_threads = total_threads;
+    int32_t MAX_THREADS_POSSIBLE = std::thread::hardware_concurrency();
+    if (total_threads < 1){
+        // 0 and negative threads
+        possible_threads = MAX_THREADS_POSSIBLE;
+    } else{
+        // Set thread number to maximum number possible if the number specified
+        // is bigger than the total possible on the system.
+        if(total_threads > MAX_THREADS_POSSIBLE){
+            possible_threads = MAX_THREADS_POSSIBLE;
+        }
     }
-
+    // Set the nubmer of threads to create
     set_possible_threads(possible_threads);
 
     // Reserve exactly the amount of space needed for the threads

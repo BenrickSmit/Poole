@@ -14,6 +14,7 @@
 ~ Add in counter for total jobs completed by all threads
 ~ Separate test functions from main.cpp
 
+
 To Add:
 ============
 ~ Add static Methods for Simplicity
