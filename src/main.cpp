@@ -28,6 +28,8 @@
 #include <cmath>
 #include <ctime>
 #include <random>
+#include <list>
+#include <set>
 
 #include "Poole.h"
 
@@ -95,26 +97,99 @@ void sorting(){
 	}
 }
 
-bool is_prime(unsigned long long input){
+std::vector<int> get_digits(uint64_t input){
+	// This function converts an input number into individual digits
+	// and then converts this into a vector
+	std::vector<int> to_return;
+	std::string s_input = "";
+	std::string s_digit = "";
+
+	// Convert the input number to a string
+	s_input = std::to_string(input);
+
+	// Convert the string into individual digits which are converted to
+	// digits again
+	for (auto i = 0; i < s_input.size(); i++){
+		s_digit = "";
+		s_digit.push_back(s_input.at(i));
+		to_return.push_back(std::stoll(s_digit));
+	}
+
+	return to_return;
+}
+
+bool is_prime(uint64_t input, std::list<uint64_t> &prev_primes){
 	bool to_return = false;
+	std::vector<int> input_num_digits = get_digits(input);
+	double square = std::sqrt(input);
 	// No divisible by 5, potentially a prime
 	if(input % 5 != 0){
-		// The tens should not be 0,2,4,6,8
-		if(input % 2 != 0){
-			int square = std::sqrt(input);
-			if (square % 2 == 0)
-				to_return = true;
-			//ERROR: NOT REALLY, but I don't really care.
+		// The ones should not be 0,2,4,6,8
+		if (input_num_digits.at(input_num_digits.size()-1) % 2 != 0) {
+			// Take the sum of the digits, if sum is divisible by 3, not a prime
+			uint64_t sum = 0;
+			for (auto i : input_num_digits){
+				sum += i;
+			}
+			if (sum % 3 != 0) {
+				// Divide the number by the primes below it's square
+				for (auto prev_prime : prev_primes) {
+					if (prev_prime < square) {
+						if (input % prev_prime != 0) {
+							to_return = true;
+						} else {
+							to_return = false;
+							break;
+						}
+					}
+				}
+			}
 		}else{
+			to_return = false;
 			return to_return;
 		}
 	}
 
-	srand(time(0));
-	std::this_thread::sleep_for(std::chrono::milliseconds(rand()%10));
+	// Add the prime number to the list of primes automatically
+	if (to_return){
+		prev_primes.push_back(input);
+	}
 
 	return to_return;
 }
+
+bool is_prime_brute_force(uint64_t input_num){
+	// This function only checks to see whether a value has more than 2 factors
+	bool to_return = true;
+	std::set<uint64_t> factors;
+	factors.emplace(1);	// Primes should only have 1 and themselves as factors
+	factors.emplace(input_num);
+
+	// Determine whether the input number is 0/1. 0 is undefined, thus not a prime
+	// and 1 is a prime. so no worries there
+	if (input_num == 0 || input_num == 1) {
+		to_return = false;
+	} else {
+		// a factor means that there is a clean division with a remainder of 0
+		// thus use the following
+		for (auto to_div_by = 1; to_div_by < input_num; to_div_by++){
+			// Find the factors
+			if (input_num % to_div_by == 0) {
+				// found a factor
+				factors.emplace(to_div_by);
+			}
+			// Check number of factors
+			if (factors.size() > 2){
+				to_return = false;
+				break;
+			}
+		}
+	}
+
+	return to_return;
+}
+
+
 
 uint64_t summation_value = 0;
 uint64_t factorial_value = 0;
@@ -122,10 +197,16 @@ uint64_t fibonacci_value = 0;
 
 
 int main(){
+	std::cout << "<STARTING EXECUTION>" << std::endl;
 	Poole thread_pool;
+	std::list<uint64_t> prime_list;
+	std::list<uint64_t> prime_brute_list;
 	/*
 	int number = 65;
 
+	// List of possible ways of executing functions in the thread_pool
+	// note, it is necessary to use lambdas for all functions that are non-void
+	// for the moment
 	thread_pool.add_function([](){function();});
 	thread_pool.add_function([](){function1(777);});
 	thread_pool.add_function([](){function2("INPUT");});
@@ -135,23 +216,31 @@ int main(){
 	thread_pool.add_function([number](){fibonacci_value = fibonacci(number); std::cout << ">> FIBONACCI("<<number<<"): " << fibonacci_value << std::endl;});
 	thread_pool.add_function([](){std::cout << ">> SORTING RANDOMS" << std::endl; sorting();});
 */
-	for (int i = 0; i < 100; i++){
-		thread_pool.add_function([i](){is_prime(i);});
+	// scan the prime_list for true primes
+	for(auto i = 0; i < 102; i++){
+		//if(is_prime(i, prime_list)){
+		//	prime_list.push_back(i);
+		//}
+		is_prime(i, prime_list);
 	}
-	for (int i = 0; i < 40; i++){
-		thread_pool.add_function([i](){fibonacci(i);});
+	for(auto i = 0; i < 102; i++){
+		if(is_prime_brute_force(i)){
+			prime_brute_list.push_back(i);
+		}
 	}
-
-	thread_pool.wait();
-	thread_pool.force_shutdown();
 	
-	for(auto i = 0; i < thread_pool.get_thread_total_tasks().size(); i++){
-		std::cout << "Thread " << (i < 10 ? "0":"") << i << " : " << thread_pool.get_thread_total_tasks().at(i) << " tasks completed, " << thread_pool.get_thread_uptimes().at(i) << " ms " << std::endl;
+	std::cout << "Brute Forced:" << std::endl;
+	std::cout << "=================" << std::endl;
+	for(auto i : prime_brute_list){
+		std::cout << i << std::endl;
+	}
+	std::cout << "" << std::endl;
+	std::cout << "Elegant Method:" << std::endl; 
+	std::cout << "=================" << std::endl;
+	for (auto i : prime_list) {
+		std::cout << i << std::endl;
 	}
 
-	//std::cout << "Summation Result: " << summation_value << std::endl;
-	//std::cout << "Factorial Result: " << factorial_value << std::endl;
-	//std::cout << "Fibonacci Result: " << fibonacci_value << std::endl;
-
+	std::cout << "<FINISHED EXECUTION>" << std::endl;
 	return 0;
 }

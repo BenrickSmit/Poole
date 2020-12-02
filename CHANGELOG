@@ -2,13 +2,21 @@
 ============
 ~ Changed Project Structure To Allow for Testing, Documentation, Profiling, Library creation.
 
+25/11/2020:
+============
+~ Add Timer to Determine How Long Threads have been Operating
+~ Add Counter for Total Jobs Completed Per Thread
+~ Allow Display of Thread Uptime and Job Count
+
+02/12/2020:
+============
+~ Bugfix: Greedy Thread problem with a full rewrite.
+~ Add in counter for total jobs completed by all threads
 
 To Add:
 ============
 ~ Add static Methods for Simplicity
 ~ Keep old methods for Beginners
-~ Add in timer for how long threads have worked
-~ Add in counter for total jobs completed per thread
-~ Add in short list of longest functions run by thread - if possible
-~ Allow Display of this information
-~ Enable Thread Searching 
+~ Enable Thread Initialisation with Static Functions
+~ Template Function to add non-void functions without lambdas
+~ Add specification for number of threads to create

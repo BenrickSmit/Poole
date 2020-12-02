@@ -16,7 +16,7 @@
  * @author: Benrick Smit
  * @email: metatronicprogramming@hotmail.com
  * @date: 20 June 2020
- * @modified: 20 June 2020
+ * @modified: 25 November 2020
  * 
  * @brief: This is the main class interface with documentation for how to use the thread pool class.
  * 
@@ -25,37 +25,15 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <deque>
+#include <queue>
 #include <map>
 #include <vector>
 #include <functional>
 #include <chrono>
+#include <future>
+#include <iostream>
  
-class ThreadInfo{
-	public:
-	// Getters
-	bool get_busy_status(){return m_is_busy;}
-	bool get_finished_status(){return m_is_finished;}
-	int get_id(){return m_thread_id;}
-	uint get_uptime() {return std::chrono::duration_cast<std::chrono::milliseconds>(
-		std::chrono::system_clock::now() - m_start_time).count();}
-	uint64_t get_total_tasks() {return m_total_tasks;}
-	void add_finished_task() {m_total_tasks+=1;}
-	void reset_finished_tasks() {m_total_tasks = 0;}
-	
-	void set_busy_status(bool value) {m_is_busy = value;}
-	void set_finished_status(bool value) {m_is_finished = value;}
-	void set_id(int value) {m_thread_id = value;}
-	void set_start_time() {m_start_time = std::chrono::system_clock::now();}
-	
-	// Setters
-	private:
-	bool m_is_busy;
-	bool m_is_finished;
-	int m_thread_id;
-	std::chrono::_V2::system_clock::time_point m_start_time;
-	unsigned long long m_total_tasks;
-};
+#include "ThreadInfo.h"
 
 class Poole {
 public:
@@ -71,70 +49,77 @@ public:
 
 	// Main interface with the program
 	/**
-	 * @brief This function adds a function to a list of functions that can be executed by random
-	 * thread.
+	 * @brief Adds a function, likely a lambda, to execute in the any thread
 	 * 
-	 * @param function the function to execute later.
+	 * @param function_to_add is a lambda or a void function to execute
 	 */
-    void add_function(std::function<void ()> function);    
+	void add_function(std::function<void()> function_to_add);
 	
-	// Determines whether all the functions have finished executing
 	/**
-	 * @brief This function determines whether at least one thread is still executing.
+	 * @brief This function pauses the execution of the threads even if jobs are available
 	 * 
-	 * @return true if at least one thread is executing.
-	 * @return false if all threads have finished executing.
+	 * @param pause the condition, true to pause, false to unpause
 	 */
-	bool is_busy();
+	void pause(bool pause = true);
 
-	// Waits the execution of the main thread until all threads have finished computing.
 	/**
-	 * @brief wait until all threads have finished executing all functions in the pool.
+	 * @brief This function waits until all threads have finished execution
+	 * 
 	 */
 	void wait();
 
-	// Forces the shutdown of the threads if necessary
 	/**
-	 * @brief force the shutdown of the threads and remove all functions in the pool. This may
-	 * cause some memory problems.
+	 * @brief This function checks the available thread info 
+	 * 
+	 * @return true if at least one thread is busy
+	 * @return false if no threads are busy
 	 */
-	void force_shutdown();
+	bool is_done();
+	bool is_busy();
 
 	// Display the total possible threads for the system
 	/**
-	 * @brief Get the possible threads supported by the system.
+	 * @brief Get the total number of threads possible on the current device
 	 * 
-	 * @return int 
+	 * @return uint32_t return number of possible threads
 	 */
-	int get_possible_threads();
+	uint32_t get_possible_threads();
 
 	// Thread Information
 	/**
-	 * @brief Get the total tasks completed by an individual thread
+	 * @brief Get the total tasks executed per thread as a vector
 	 * 
-	 * @param position demarcates the index of the thread
-	 * @return unsigned long long indicating the number of tasks completed
+	 * @return std::vector<unsigned long long> is a vector of completed thread tasks
 	 */
-	unsigned long long get_total_tasks_at(int id);
+	std::vector<unsigned long long> get_thread_total_tasks_executed();
+	
 	/**
-	 * @brief Get the uptime of an individual thread in milliseconds
+	 * @brief Get the total uptime for each thread as a vactor
 	 * 
-	 * @param position demarcates the index of the thread
-	 * @return unsigned long long indicating the uptime in milliseconds
+	 * @return std::vector<unsigned long long>  is a vector of uptimes per thread
 	 */
-	unsigned long long get_uptime_at(int id);
+	std::vector<unsigned long long> get_thread_total_uptime();
+
 	/**
-	 * @brief Get the thread uptimes for all threads available
+	 * @brief Get the total tasks executed by the threadpool
 	 * 
-	 * @return std::vector<unsigned long long> a vector of all uptimes
+	 * @return uint64_t a number indicating the total number of functions executed
 	 */
-	std::vector<unsigned long long> get_thread_uptimes();
+	uint64_t get_total_tasks_executed();
+	
 	/**
-	 * @brief Get the total tasks completed for all threads available
+	 * @brief Get the total uptime of the longest running thread
 	 * 
-	 * @return std::vector<unsigned long long> a vector of all tasks completed
+	 * @return uint64_t a number indicating uptime in milliseconds
 	 */
-	std::vector<unsigned long long> get_thread_total_tasks();
+	uint64_t get_total_uptime();
+
+	/**
+	 * @brief creates a string of statistics to display the information per thread
+	 * 
+	 * @return std::string the string to display
+	 */
+	std::string statistics();
 
 private:
 	// Delete certain functions
@@ -147,34 +132,56 @@ private:
 	 */
 	void init();
 
-	// Ensure a safe ending for the threads
 	/**
-	 * @brief The internal function used by both the dtor and force_shutdown();
+	 * @brief This the infinite loop that looks for jobs to execute per thread
+	 * 
+	 * @param thread_id is the id of the thread running the function
+	 */
+	void zombie_loop(uint32_t thread_id=0);
+
+	/**
+	 * @brief This function is used to stop the thread pool dead in its tracks
 	 * 
 	 */
-	void force_thread_stop();
+	void force_stop();
 
-	// The infinite loops that ensure the functions get executed
-	/**
-	 * @brief an event loop that obtains a function and executes it.
-	 * 
-	 * @param id an int value used to identify the thread executing it.
-	 */
-	void infinite_event_loop(int id = 0);
+	// Getters
+	void stop_processing(bool con = false);
+	
+	// Setters
+	void set_possible_threads(uint32_t possible_threads);
 
-    // The Poole of threads and their information
-    std::map<int, std::thread> m_worker_threads;
-	std::map<int, ThreadInfo> m_worker_thread_info;
- 
-    // The Poole of functions to execute
-    std::deque<std::function<void()>> m_function_tasks;
- 
-    // Ensure the threads use the queue in a thread-safe manner
-    mutable std::mutex m_queue_mutex;
-    std::condition_variable m_condition;
-	std::condition_variable m_finished_condition;
-    bool m_stop_poole;
-	int m_total_possible_threads;
-
-	bool m_has_stopped;
+	// Member Variables
+	std::vector<std::thread> m_threads;
+	std::vector<ThreadInfo> m_thread_info;
+	std::queue<std::function<void()>> m_function_queue;
+	std::recursive_mutex m_queue_mutex;							// Slightly slower than std::recursive_mutex
+	std::condition_variable_any m_threadpool_notifier;
+	std::condition_variable_any m_wait_execution_notifier;
+	uint32_t m_total_possible_threads;
+	bool m_stop_processing;		
+	bool m_emergency_stop;
+	bool m_paused;
 };
+
+
+// Stats: 
+// simple is_prime function with std::recursive_mutex run 100 times on numbers 1-1000
+// average execution time: 
+//			run 1: 			091.35 ms
+//			run 2:			146.01 ms
+//			run 3:			126.60 ms
+//			run 4:			095.98 ms
+//			run 5:			162.16 ms
+//
+// simple is_prime function with std::recursive_mutex run 100 times on nubmers 1-1000
+// average execution time:
+//			run 1:			087.85 ms
+//			run 2:			198.72 ms
+//			run 3:			228.73 ms
+//			run 4:			155.20 ms
+//			run 5:			113.52 ms
+//
+// Conclustion: While std::recursive_mutex is overall faster when it is, but, more often
+// 				than not, it will have a greater degree of variability during
+//				its execution. As such, I'll be using std::recursive_mutex
