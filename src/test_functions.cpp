@@ -25,25 +25,34 @@
 
 #include "test_functions.h"
 
-uint64_t summation(uint64_t to_number){
-	uint64_t total = 0;
-	for (auto i = 0; i < to_number; i++){
+int64_t summation(const int64_t& to_number){
+	int64_t total = 0;
+	for (auto i = 0; i <= to_number; i++){
 		total += i;
 	}
 	return total;
 }
 
 
-uint64_t factorial(uint64_t input){
-	if (input == 1){
-		return 1;
-	}else{
-		return static_cast<uint64_t>(input * factorial(input-1));
-	}
+int64_t factorial(int64_t input){
+	// Determine if the input is positive or negative
+	if(input >= 0) {
+		if (input == 1 || input == 0){
+			return 1;
+		}else{
+			return static_cast<uint64_t>(input * factorial(input-1));
+		}
+	}else {
+		if (input == -1 || input == 0){
+			return -1;
+		}else{
+			return static_cast<uint64_t>(input * factorial(input+1));
+		}
+	}	
 }
 
 
-uint64_t fibonacci(int value){
+uint64_t fibonacci(uint64_t value){
 	if ((value==1) || (value == 0)){
 		return value;
 	}else {
@@ -74,7 +83,7 @@ std::vector<int> get_digits(uint64_t input){
 }
 
 
-bool is_prime(uint64_t input, std::list<uint64_t> &prev_primes){
+/*bool is_prime(uint64_t input, std::list<uint64_t> &prev_primes){
 	bool to_return = false;
 	std::vector<int> input_num_digits = get_digits(input);
 	double square = std::sqrt(input);
@@ -99,6 +108,11 @@ bool is_prime(uint64_t input, std::list<uint64_t> &prev_primes){
 						}
 					}
 				}
+
+				// If there are no elements to divide by
+				if(input > 1 && prev_primes.empty()){
+					to_return = true;
+				}
 			}
 		}else{
 			to_return = false;
@@ -113,7 +127,76 @@ bool is_prime(uint64_t input, std::list<uint64_t> &prev_primes){
 
 	return to_return;
 }
+*/
+bool is_prime(uint64_t input, std::list<uint64_t> &prev_primes) {
+	bool to_return = false;
+	std::vector<int> digits = get_digits(input);
+	double square = std::sqrt(input);
 
+	//Determine whether the value is below 10
+	if(input < 10){
+		// Determine whether the input is evently divisible by 3
+		if (input % 3 != 0) {
+			// Divide the number by the number of prime numbers beneath its square
+			for (auto prev_prime : prev_primes) {
+				// iF the 
+				if (prev_prime < square) {
+					if(input % prev_prime == 0){
+						to_return = false;
+						break;
+					} else {
+						to_return = true;
+					}
+				}
+			}
+
+			// If there are no primes and the number is neither 1, not 0
+			if (input > 1 && prev_primes.empty()) {
+				to_return = true;
+			}
+		}
+	}else { // input is greater than 10
+		// No divisible by 5, potentially a prime
+		if(input % 5 != 0){
+			// The ones should not be 0,2,4,6,8
+			if (digits.at(digits.size()-1) % 2 != 0) {
+				// Take the sum of the digits, if sum is divisible by 3, not a prime
+				uint64_t sum = 0;
+				for (auto i : digits){
+					sum += i;
+				}
+				if (sum % 3 != 0) {
+					// Divide the number by the primes below it's square
+					for (auto prev_prime : prev_primes) {
+						if (prev_prime < square) {
+							if (input % prev_prime != 0) {
+								to_return = true;
+							} else {
+								to_return = false;
+								break;
+							}
+						}
+					}
+
+					// If there are no elements to divide by
+					if(input > 1 && prev_primes.empty()){
+						to_return = true;
+					}
+				}
+			}else{
+				to_return = false;
+				return to_return;
+			}
+		}
+	}
+
+	// Add the found prime to the list
+	if(to_return) {
+		prev_primes.emplace_back(input);
+	}
+
+	return to_return;
+}
 
 bool is_prime_brute_force(uint64_t input_num, std::list<uint64_t> &prev_primes){
 	// This function only checks to see whether a value has more than 2 factors

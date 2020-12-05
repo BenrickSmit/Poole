@@ -38,7 +38,7 @@
  * @param to_number the upper-limit number up to which to sum
  * @return uint64_t return a long long value
  */
-uint64_t summation(uint64_t to_number);
+int64_t summation(const int64_t& to_number);
 
 /**
  * @brief calculates the factorial up to the specified input number
@@ -46,7 +46,7 @@ uint64_t summation(uint64_t to_number);
  * @param input the number up to which we should calculate the factorial
  * @return uint64_t returns the factorial value
  */
-uint64_t factorial(uint64_t input);
+int64_t factorial(int64_t input);
 
 /**
  * @brief This function finds the fibonacci value at the position of the input number recursively
@@ -54,7 +54,7 @@ uint64_t factorial(uint64_t input);
  * @param value the position to which we should find the fibonacci value
  * @return uint64_t the fibonacci value
  */
-uint64_t fibonacci(int value);
+uint64_t fibonacci(uint64_t value);
 
 /**
  * @brief Get the individual digits on the input number

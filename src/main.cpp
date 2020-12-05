@@ -39,7 +39,7 @@
 int main(){
 	std::cout << "<STARTING EXECUTION>" << std::endl;
 	int32_t threads_wanted = 1;
-	Poole thread_pool = Poole(threads_wanted);
+	Poole thread_pool{threads_wanted};
 	std::list<uint64_t> prime_list;
 	std::list<uint64_t> prime_brute_list;
 	/*
