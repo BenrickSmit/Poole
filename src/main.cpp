@@ -38,8 +38,10 @@
 
 int main(){
 	std::cout << "<STARTING EXECUTION>" << std::endl;
-	int32_t threads_wanted = 1;
-	Poole thread_pool{threads_wanted};
+	int32_t threads_wanted1 = 1;
+	int32_t threads_wanted2 = -1;
+	const int32_t TOTAL_NUMBERS = 100000;
+	
 	std::list<uint64_t> prime_list;
 	std::list<uint64_t> prime_brute_list;
 	/*
@@ -57,15 +59,38 @@ int main(){
 	thread_pool.add_function([number](){fibonacci_value = fibonacci(number); std::cout << ">> FIBONACCI("<<number<<"): " << fibonacci_value << std::endl;});
 	thread_pool.add_function([](){std::cout << ">> SORTING RANDOMS" << std::endl; sorting();});
 */
-	// scan the prime_list for true primes
-	std::cout << "Total Threads Asked For: " << threads_wanted << std::endl;
-	std::cout << "Total Threads Created: " << thread_pool.get_possible_threads() << std::endl;
-	for(auto i = 0; i < 102; i++){
-		//if(is_prime(i, prime_list)){
-		//	prime_list.push_back(i);
-		//}
-		is_prime(i, prime_list);
+
+	// Execution of the 1st 100000 prime numbers with one thread
+	Poole thread_pool1{threads_wanted1};
+	std::cout << "\nTotal Threads Asked For thread_pool1: " << threads_wanted1 << std::endl;
+	std::cout << "Total Threads Created   thread_pool1: " << thread_pool1.get_possible_threads() << std::endl;
+	std::cout << std::endl;
+	std::cout << "thread_pool1 Statistics:" << std::endl;
+	std::cout << "========================" << std::endl;
+	for(auto i = 0; i < TOTAL_NUMBERS; i++){
+		thread_pool1.add_function([i, prime_brute_list]() mutable {
+			is_prime_brute_force(i, prime_brute_list);
+		});
 	}
+	thread_pool1.wait();
+	std::cout << thread_pool1.statistics() << std::endl;
+
+	// Execution of the 1st 100000 prime numbers with as many as possible threads
+	Poole thread_pool2{threads_wanted2};
+	std::cout << "Total Threads Asked For thread_pool2: " << threads_wanted2 << std::endl;
+	std::cout << "Total Threads Created   thread_pool2: " << thread_pool2.get_possible_threads() << std::endl;
+	std::cout << std::endl;
+	std::cout << "thread_pool2 Statistics:" << std::endl;
+	std::cout << "========================" << std::endl;
+	for(auto i = 0; i < TOTAL_NUMBERS; i++){
+		thread_pool2.add_function([i, prime_brute_list]() mutable {
+			is_prime_brute_force(i, prime_brute_list);
+		});
+	}
+	thread_pool2.wait();
+	std::cout << thread_pool2.statistics() << std::endl;
+
+	
 	
 
 	std::cout << "<FINISHED EXECUTION>" << std::endl;
