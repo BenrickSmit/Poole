@@ -27,9 +27,9 @@ NC=`tput sgr0`
 cd build/src/
 
     ## Determine whether the gmon.out file exists
-    if [ -f gmon.out]; then
-        gprof ${EXEC_FILENAME} gmon.out --brief > ${EXEC_FILENAME}_profile_info.txt
-        cat ${EXEC_FILENAME}_profile_info.txt
+    if [ -e "../../gmon.out" ]; then
+        gprof ${EXEC_FILENAME} ../../gmon.out --brief > ../../${EXEC_FILENAME}_profile_info.txt
+        cat ../../${EXEC_FILENAME}_profile_info.txt
     else
         echo "${RED}Profile Information Does NOT Exists. ${NC}"
         echo "${RED}\'gprof\' might not be installed, or you didn't allow${NC}"

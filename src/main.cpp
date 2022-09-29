@@ -40,6 +40,7 @@ int main(){
 	std::cout << "<STARTING EXECUTION>" << std::endl;
 	int32_t threads_wanted1 = 1;
 	int32_t threads_wanted2 = -1;
+	int32_t threads_wanted3 = 4;
 	const int32_t TOTAL_NUMBERS = 100000;
 	
 	std::list<uint64_t> prime_list;
@@ -91,6 +92,21 @@ int main(){
 	std::cout << thread_pool2.statistics() << std::endl;
 
 	
+	// Execution of the 1st 100000 prime numbers with as many as possible threads
+	Poole thread_pool3{threads_wanted3};
+	std::cout << "Total Threads Asked For thread_pool3: " << threads_wanted3 << std::endl;
+	std::cout << "Total Threads Created   thread_pool3: " << thread_pool3.get_possible_threads() << std::endl;
+	std::cout << std::endl;
+	std::cout << "thread_pool2 Statistics:" << std::endl;
+	std::cout << "========================" << std::endl;
+	for(auto i = 0; i < TOTAL_NUMBERS; i++){
+		thread_pool3.add_function([i, prime_brute_list]() mutable {
+			is_prime_brute_force(i, prime_brute_list);
+		});
+	}
+	thread_pool3.wait();
+	std::cout << thread_pool3.statistics() << std::endl;
+
 	
 
 	std::cout << "<FINISHED EXECUTION>" << std::endl;
