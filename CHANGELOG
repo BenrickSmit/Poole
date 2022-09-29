@@ -20,6 +20,11 @@
 ===========
 ~ Add in tests for the test functions
 
+29/09/2022:
+===========
+~ Updated Google Test Library
+~ Updated Execution Files for smoother execution
+
 To Add:
 ============
 ~ Add static Methods for Simplicity
