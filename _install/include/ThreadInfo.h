@@ -29,17 +29,9 @@
 #include <string>
 #include <chrono>
 #include <iostream>
-
-/**
- * Current Functionality:
- * 	-	Thread is Busy
- *  -	Thread ID
- *  - 	Thread is Done
- *  - 	Thread Uptime
- *  -	Thread Total Tasks
- *  -	Add Completed Task
- * 
- */
+#include <type_traits> // Added for std::invoke_result_t or similar usage earlier, keeping it for robustness
+ 
+#include "ThreadInfo.h"
 
 class ThreadInfo{
 	public:
@@ -77,5 +69,6 @@ class ThreadInfo{
 	int m_thread_ID;
 	std::chrono::system_clock::time_point m_start_time_ms;
 	unsigned long long m_total_tasks;
+	char _padding[40]; // Manual padding to prevent false sharing, assuming 64-byte cache lines
 };
 

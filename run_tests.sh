@@ -9,7 +9,7 @@
 PROJECT_NAME=$(cat build_info/build_name.txt)
 
 # Determine the build type (Debug, Release, etc.)
-BUILD_TYPE="Debug" # Default to Debug
+BUILD_TYPE=${1:-"Debug"} # Default to Debug if no argument is provided
 
 # Construct the expected name for the test executable
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
@@ -27,5 +27,5 @@ if [ -z "${TEST_EXECUTABLE_PATH}" ]; then
 fi
 
 echo "Running tests: ${TEST_EXECUTABLE_PATH}"
-export PATH=$PATH:$(pwd)/build/bin/Debug # Add the directory containing DLLs to PATH
+export PATH=$PATH:$(pwd)/build/bin/${BUILD_TYPE} # Add the directory containing DLLs to PATH
 "${TEST_EXECUTABLE_PATH}"
