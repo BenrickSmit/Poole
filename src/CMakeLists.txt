@@ -63,7 +63,7 @@ endif()
 ##------------------------------------------------------------------------------
 if(${BOOL_CREATE_LIBRARY})
     ## Create the required library
-    add_library(${PROJECT_NAME}_lib STATIC ${EXEC_FILE_SOURCES})
+    add_library(${PROJECT_NAME}_lib ${EXEC_FILE_SOURCES})
     ## Allow for threads
     target_link_libraries(${PROJECT_NAME}_lib PRIVATE Threads::Threads)
     target_include_directories(${PROJECT_NAME}_lib PUBLIC  $<INSTALL_INTERFACE:include> PRIVATE ${CMAKE_SOURCE_DIR}/includes)

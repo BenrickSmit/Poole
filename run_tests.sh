@@ -27,4 +27,5 @@ if [ -z "${TEST_EXECUTABLE_PATH}" ]; then
 fi
 
 echo "Running tests: ${TEST_EXECUTABLE_PATH}"
+export PATH=$PATH:$(pwd)/build/bin/Debug # Add the directory containing DLLs to PATH
 "${TEST_EXECUTABLE_PATH}"

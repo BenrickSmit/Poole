@@ -15,10 +15,10 @@
 /**
  * @author: Benrick Smit
  * @date: 20 June 2020
- * @modified: 2 December 2020
- * 
+ * @modified: 29 December 2025
+ *
  * @brief: This contains the implementations of the ThreadInfo class
- * 
+ *
  */
 
 #include "ThreadInfo.h"  
@@ -35,24 +35,24 @@ ThreadInfo::ThreadInfo(){
 }
 
 // Getters
-bool ThreadInfo::is_busy() {
+bool ThreadInfo::is_busy() const {
     return m_thread_is_busy;
 }
 
-uint32_t ThreadInfo::get_ID() {
+uint32_t ThreadInfo::get_ID() const {
     return m_thread_ID;
 }
 
-bool ThreadInfo::is_done() {
+bool ThreadInfo::is_done() const {
     return m_thread_is_done;
 }
 
-uint32_t ThreadInfo::get_uptime() {
+uint32_t ThreadInfo::get_uptime() const {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - 
             get_start_time()).count();
 }
 
-uint64_t ThreadInfo::get_tasks() {
+uint64_t ThreadInfo::get_tasks() const {
     return m_total_tasks;
 }
 
@@ -108,7 +108,7 @@ std::string ThreadInfo::to_string() {
     return to_return;
 }
 
-std::chrono::system_clock::time_point ThreadInfo::get_start_time() {
+std::chrono::system_clock::time_point ThreadInfo::get_start_time() const {
     return m_start_time_ms;
 }
 

@@ -6,12 +6,14 @@ set(BOOL_CREATE_TESTS ON)
 set(BOOL_CREATE_EXECUTABLE ON)
 set(BOOL_CREATE_LIBRARY ON)
 
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+
 ## Obtain the project's base name and version number
 file(STRINGS "build_info/build_name.txt" STRING_PROJECT_NAME)
 file(STRINGS "build_info/build_version.txt" STRING_PROJECT_VERSION)
 
 ## Basic CMAKE Project Settings
-cmake_minimum_required (VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.20 FATAL_ERROR)
 project(${STRING_PROJECT_NAME} VERSION "${STRING_PROJECT_VERSION}")
 
 ##------------------------------------------------------------------------------
@@ -30,7 +32,7 @@ if(${BOOL_CREATE_TESTS})
     enable_testing()
 
     ## Add the Google Test (gtest) unit testing framework
-    add_subdirectory(lib/googletest-release-1.12.1 EXCLUDE_FROM_ALL)
+    add_subdirectory(lib/googletest-1.17.0 EXCLUDE_FROM_ALL)
     ## Prevent overriding the parent project's compiler/linker settings on Windows
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     

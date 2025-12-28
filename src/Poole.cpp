@@ -39,20 +39,24 @@ Poole::~Poole(){
 void Poole::add_function(std::function<void()> function_to_add) {
     // This function is to add a function to the function_queue for execution
     {
-        std::unique_lock<std::recursive_mutex> queue_lock(m_queue_mutex);
+        std::unique_lock<std::mutex> queue_lock(m_queue_mutex);
 
-        // Make sure that you can't add functions if the function is 
+        // Make sure that you can't add functions if the function is
         // pool is stopped, or exited
         if (m_stop_processing || m_emergency_stop){
             std::cerr << "ERROR: Poole::add_function() - attempted to add function to stopepd pool.";
             exit(1);
         }
 
-        // Add the function to the queue
-        m_function_queue.emplace(std::bind(function_to_add));
-    }
-    // Notify one thread in the thread pool that a function has been added
-    m_threadpool_notifier.notify_one();
+                // Add the function to the queue
+
+                m_function_queue.emplace(std::bind(function_to_add));
+
+                // Notify one thread in the thread pool that a function has been added
+
+                m_threadpool_notifier.notify_one();
+
+            }
 }
 
 
@@ -91,8 +95,8 @@ void Poole::init(int32_t total_threads){
         // Create the thread information for use
         ThreadInfo thread_info;
         thread_info.set_ID(i);
-        thread_info.set_busy(true);
-        thread_info.set_done(false);
+        thread_info.set_busy(false); // Initially not busy
+        thread_info.set_done(true); // Initially done (no task assigned)
 
         // Create the thread that will wait on functions
         //m_worker_threads.insert({i, std::thread([this](){this->infinite_event_loop();})});
@@ -105,7 +109,7 @@ void Poole::init(int32_t total_threads){
 void Poole::pause(bool pause) {
     // Scoped mutex lack to ensure only one function executes it
     {
-        std::unique_lock<std::recursive_mutex> queue_lock(m_queue_mutex);
+        std::unique_lock<std::mutex> queue_lock(m_queue_mutex);
         m_paused = pause;
     }// release scoped mutex
 
@@ -114,35 +118,32 @@ void Poole::pause(bool pause) {
 }
 
 void Poole::wait() {
-    // This function waits until all threads are finished executing to 
-    // continue processing.
-    /*std::unique_lock<std::recursive_mutex> queue_lock(m_queue_mutex);
-        
-    m_wait_execution_notifier.wait(
-        queue_lock, 
-        [this](){
-            // False to wait; True to continue waiting
-            return m_function_queue.empty() && !is_busy();
-        }); 
-    */
-    while (true){
-        if(m_function_queue.empty() && is_done()){
-            pause(false);
-            break;
-        }else{
-            pause(true);
+    bool was_paused = false;
+    {
+        std::unique_lock<std::mutex> queue_lock(m_queue_mutex);
+        if (m_paused) {
+            was_paused = true;
+            m_paused = false; // Temporarily unpause to allow tasks to be processed
+            m_threadpool_notifier.notify_all(); // Wake up workers if they were paused
+        }
+        m_wait_execution_notifier.wait(
+            queue_lock,
+            [this](){
+                return m_function_queue.empty() && !is_busy();
+            });
+        if (was_paused) {
+            m_paused = true; // Restore original paused state
         }
     }
 }
 
 bool Poole::is_done() {
+    // std::unique_lock<std::mutex> lock(m_queue_mutex); // Lock is assumed to be held by caller
     // Scan through the ThreadInfo data to see whether the threads are busy 
     // executing. If they are, return false.
     bool to_return = true;
-    ThreadInfo info;
 
-    for(auto counter = 0; counter < get_possible_threads(); counter++){
-        info = m_thread_info.at(counter);
+    for(auto const& info : m_thread_info){
         if((info.is_done() == false)){
             to_return = false;
             break;
@@ -153,13 +154,13 @@ bool Poole::is_done() {
 }
 
 bool Poole::is_busy() {
+    // std::unique_lock<std::mutex> lock(m_queue_mutex); // Lock is assumed to be held by caller
     // Scan through the ThreadInfo data to see whether the threads are busy
     // executing a funciton. If they are return true, if not, return false;
     bool to_return = false;
-    ThreadInfo info;
 
     // Slightly slower, but still good to use for now
-    for (auto thread : m_thread_info){
+    for (auto const& thread : m_thread_info){
         if (thread.is_busy()){
             to_return = true;
             break;
@@ -175,18 +176,15 @@ void Poole::zombie_loop(uint32_t thread_id) {
     while (true){
         std::function<void()> function_to_execute;
 
-        // Scoped Wait for available tasks
-        {
-            std::unique_lock<std::recursive_mutex> queue_lock(m_queue_mutex);
-            m_threadpool_notifier.wait(
-                queue_lock,
-                [this](){
-                    return (!m_function_queue.empty() && m_paused) 
-                    || m_stop_processing
-                    || m_emergency_stop;
-                }
-            );
-
+                    // Scoped Wait for available tasks
+                    {
+                        std::unique_lock<std::mutex> queue_lock(m_queue_mutex);            m_threadpool_notifier.wait(
+                            queue_lock,
+                            [this](){
+                                return (!m_function_queue.empty() && !m_paused)
+                                                    || m_stop_processing
+                                                    || m_emergency_stop;                            }
+                        );
             // Stop the function when there are no more tasks and asked to stop,
             // or if requested to stop via the emergency stop procedure
             if((m_stop_processing && m_function_queue.empty()) 
@@ -200,28 +198,31 @@ void Poole::zombie_loop(uint32_t thread_id) {
         }
 
         // Update statistics for the thread
-        m_thread_info.at(thread_id).set_busy(true);
-        m_thread_info.at(thread_id).set_done(false);
+        {
+            std::unique_lock<std::mutex> lock(m_queue_mutex);
+            m_thread_info.at(thread_id).set_busy(true);
+            m_thread_info.at(thread_id).set_done(false);
+        }
         
-
         // Execute the task and add information about the loop
         function_to_execute();
 
         // Update job statistics for the thread
-        m_thread_info.at(thread_id).set_done(true);
-        m_thread_info.at(thread_id).set_busy(false);
-        m_thread_info.at(thread_id).add_task();
-
-        //Inform the wait condition_variable that a function has been completed
-        m_wait_execution_notifier.notify_one();
+        {
+            std::unique_lock<std::mutex> lock(m_queue_mutex);
+            m_thread_info.at(thread_id).set_done(true);
+            m_thread_info.at(thread_id).set_busy(false);
+            m_thread_info.at(thread_id).add_task();
+            //Inform the wait condition_variable that a function has been completed
+            m_wait_execution_notifier.notify_one();
+        }
     }
 }
 
 void Poole::force_stop() {
     // Ensure the mutex automatically releases once it's out of scope
     {
-        std::unique_lock<std::recursive_mutex> queue_lock(m_queue_mutex);
-        stop_processing(true);
+        std::unique_lock<std::mutex> queue_lock(m_queue_mutex);        stop_processing(true);
     }// Automatically release mutex
 
     // Wake up all threads to let them exit their loops

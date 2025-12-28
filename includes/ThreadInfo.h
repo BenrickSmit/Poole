@@ -47,11 +47,11 @@ class ThreadInfo{
 		ThreadInfo();
 
 	// Getters
-		bool is_busy();
-		uint32_t get_ID();
-		bool is_done();
-		uint32_t get_uptime();
-		uint64_t get_tasks();
+		bool is_busy() const;
+		uint32_t get_ID() const;
+		bool is_done() const;
+		uint32_t get_uptime() const;
+		uint64_t get_tasks() const;
 		
 	// Setters
 		void set_busy(bool con = false);
@@ -64,7 +64,7 @@ class ThreadInfo{
 
 	protected:
 	// Getters
-		std::chrono::system_clock::time_point get_start_time();
+		std::chrono::system_clock::time_point get_start_time() const;
 
 	// Setters
 		void set_uptime();

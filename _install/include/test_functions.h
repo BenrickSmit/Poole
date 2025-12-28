@@ -14,13 +14,12 @@
 */
 /**
  * @author: Benrick Smit
- * @email: metatronicprogramming@hotmail.com
  * @date: 1 December 2020
- * @modified: 2 December 2020
- * 
+ * @modified: 29 December 2025
+ *
  * @brief: This contains the header information for some test functions to
  *          test with the program. It includes recursive and iterable functions
- * 
+ *
  */
 
 #pragma once
