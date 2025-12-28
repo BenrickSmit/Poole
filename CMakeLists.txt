@@ -4,7 +4,7 @@
 ## Set some settings for the builder
 set(BOOL_CREATE_TESTS ON)
 set(BOOL_CREATE_EXECUTABLE ON)
-set(BOOL_CREATE_LIBRARY OFF)
+set(BOOL_CREATE_LIBRARY ON)
 
 ## Obtain the project's base name and version number
 file(STRINGS "build_info/build_name.txt" STRING_PROJECT_NAME)
@@ -42,3 +42,27 @@ endif()
 ## SECTION: Create Bin directory
 ##------------------------------------------------------------------------------
 file(MAKE_DIRECTORY bin)
+
+# Configure and install PooleConfig.cmake
+install(EXPORT ${PROJECT_NAME}Targets
+        FILE "${PROJECT_NAME}Targets.cmake"
+        NAMESPACE "${PROJECT_NAME}::"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+)
+install(DIRECTORY includes/ DESTINATION include)
+install(FILES cmake/PooleConfig.cmake.in
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+        RENAME "${PROJECT_NAME}Config.cmake"
+)
+
+# Generate and install the version file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION "${PROJECT_VERSION}"
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        DESTINATION "lib/cmake/${PROJECT_NAME}"
+)

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##------------------------------------------------------------------------------------------
 ## SECTION: Base Variable Declarations
 ##------------------------------------------------------------------------------------------
@@ -32,7 +33,7 @@ print_color() {
 
 # Used to determine whether a command is installed on the system
 have_prog() {
-    [ -x "$(which $1)" ]
+    command -v "$1" >/dev/null 2>&1
 }
 
 verify_doxygen_installation() {
@@ -47,48 +48,48 @@ verify_doxygen_installation() {
 }
 
 # Used to install doxygen if it isn't installed already
-install_doxygen() {
-	# Echo the function's function
-	print_color ""
-	print_color ">>>> Validating doxygen Install..." "BLUE"
-
-	# Determine whether doxygen is already intalled
-	verify_doxygen_installation
-	if [ ${HAS_DOXY} == "True" ] ; then
-		print_color ">>>> \"${PACKAGES}\" ALREADY INSTALLED; Skipping..." "BLUE"
-		return
-	else
-		print_color ">>>> \"${PACKAGES}\" NOT installed; Installing..." "BLUE"
-	fi
-	
-	# Install Doxygen if it's not already installed
-	if [ ${HAS_DOXY} == "False" ] ; then
-		# Determine which installed to use
-		if have_prog dnf ; then 
-			sudo dnf install ${PACKAGES}
-		elif have_prog apt-get ; then
-			sudo apt-get install ${PACKAGES}
-		elif have_prog pacman ; then
-			sudo pacman -Syu install ${PACKAGES}
-		elif have_prog apt ; then 
-			sudo apt install ${PACKAGES}
-		else
-			print_color ">>>> NO PACKAGE MANAGER FOUND!" "RED"
-			exit 2
-		fi
-	fi
-	
-	# Verify whether the programs have been installed successfully
-	verify_doxygen_installation
-	if [ ${HAS_DOXY} == "True" ] ; then
-		printf "${BLUE}>>>> Installation of \"${PACKAGES}\" ? ${NC}"
-		print_color "[ ${PRINT_RESULT} ]" "GREEN" 
-	else 
-		printf "${BLUE}>>>> Installation of \"${PACKAGES}\" ? ${NC}"
-		print_color "[ ${PRINT_RESULT} ]" "RED"
-		exit 2
-	fi
-}
+#install_doxygen() {
+#	# Echo the function's function
+#	print_color ""
+#	print_color ">>>> Validating doxygen Install..." "BLUE"
+#
+#	# Determine whether doxygen is already intalled
+#	verify_doxygen_installation
+#	if [ ${HAS_DOXY} == "True" ] ; then
+#		print_color ">>>> \"${PACKAGES}\" ALREADY INSTALLED; Skipping..." "BLUE"
+#		return
+#	else
+#		print_color ">>>> \"${PACKAGES}\" NOT installed; Installing..." "BLUE"
+#	fi
+#	
+#	# Install Doxygen if it's not already installed
+#	if [ ${HAS_DOXY} == "False" ] ; then
+#		# Determine which installed to use
+#		if have_prog dnf ; then 
+#			sudo dnf install ${PACKAGES}
+#		elif have_prog apt-get ; then
+#			sudo apt-get install ${PACKAGES}
+#		elif have_prog pacman ; then
+#			sudo pacman -Syu install ${PACKAGES}
+#		elif have_prog apt ; then 
+#			sudo apt install ${PACKAGES}
+#		else
+#			print_color ">>>> NO PACKAGE MANAGER FOUND!" "RED"
+#			exit 2
+#		fi
+#	fi
+#	
+#	# Verify whether the programs have been installed successfully
+#	verify_doxygen_installation
+#	if [ ${HAS_DOXY} == "True" ] ; then
+#		printf "${BLUE}>>>> Installation of \"${PACKAGES}\" ? ${NC}"
+#		print_color "[ ${PRINT_RESULT} ]" "GREEN" 
+#	else 
+#		printf "${BLUE}>>>> Installation of \"${PACKAGES}\"" "RED"
+#		print_color "[ ${PRINT_RESULT} ]" "RED"
+#		exit 2
+#	fi
+#}
 
 configure_doxygen() {
 	# Echo the function's function
@@ -247,7 +248,7 @@ finalise_documentation_generator() {
 ## SECTION: Program Logic
 ##------------------------------------------------------------------------------------------
 # Make sure doxygen is installed program is installed
-install_doxygen
+#install_doxygen
 
 # Run doxygen automatically with the pre-determined settings, editing the files as necessary
 configure_doxygen

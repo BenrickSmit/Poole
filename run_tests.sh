@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##-------------------------------------------------------------------------------------------------
 ## HEADER INFORMATION
 ##-------------------------------------------------------------------------------------------------
@@ -5,10 +6,25 @@
 ## after which it will execute it.
 
 ## Read the filename from the chosen location
-SOURCE_FILENAME="${PWD}/build_info/build_name.txt"
-EXEC_FILENAME=(`cat $SOURCE_FILENAME`)
-EXEC_FILENAME=${EXEC_FILENAME}
+PROJECT_NAME=$(cat build_info/build_name.txt)
 
-## Change directory to execute the file
-cd build/tests
-./${EXEC_FILENAME}_tests
+# Determine the build type (Debug, Release, etc.)
+BUILD_TYPE="Debug" # Default to Debug
+
+# Construct the expected name for the test executable
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+    TEST_EXECUTABLE_NAME="${PROJECT_NAME}_tests.exe"
+else
+    TEST_EXECUTABLE_NAME="${PROJECT_NAME}_tests"
+fi
+
+# Search for the test executable in the build directory
+TEST_EXECUTABLE_PATH=$(find ./build -name "${TEST_EXECUTABLE_NAME}" -type f 2>/dev/null | grep "${BUILD_TYPE}" | head -n 1)
+
+if [ -z "${TEST_EXECUTABLE_PATH}" ]; then
+    echo "Error: Test executable not found. Tried searching for ${TEST_EXECUTABLE_NAME} in ./build/${BUILD_TYPE}/ or similar."
+    exit 1
+fi
+
+echo "Running tests: ${TEST_EXECUTABLE_PATH}"
+"${TEST_EXECUTABLE_PATH}"

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##-------------------------------------------------------------------------------------------------
 ## HEADER INFORMATION
 ##-------------------------------------------------------------------------------------------------
@@ -9,31 +10,54 @@
 ## SECTION: FUNCTION DECLARATIONS
 ##-------------------------------------------------------------------------------------------------
 have_prog() {
-    [ -x "$(which $1)" ]
+    command -v "$1" >/dev/null 2>&1
 }
 
 
 ##-------------------------------------------------------------------------------------------------
 ## SECTION: PROGRAM LOGIC
 ##-------------------------------------------------------------------------------------------------
-SOURCE_FILENAME="${PWD}/build_info/build_name.txt"
-EXEC_FILENAME=(`cat $SOURCE_FILENAME`)
-EXEC_FILENAME=${EXEC_FILENAME}
+PROJECT_NAME=$(cat build_info/build_name.txt)
+PROJECT_VERSION=$(cat build_info/build_version.txt)
 RED=`tput setaf 1`
 GREEN=`tput setaf 10`
 NC=`tput sgr0`
 
-## Run gprof on the program created
-cd build/src/
+# Determine the build type (Debug, Release, etc.)
+BUILD_TYPE="Debug" # Default to Debug
+
+# Construct the expected path for the executable
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+    EXECUTABLE_NAME="${PROJECT_NAME}.exe"
+else
+    EXECUTABLE_NAME="${PROJECT_NAME}"
+fi
+
+# Search for the executable in the build directory
+EXECUTABLE_PATH=$(find ./build -name "${EXECUTABLE_NAME}" -type f 2>/dev/null | grep "${BUILD_TYPE}" | head -n 1)
+
+if [ -z "${EXECUTABLE_PATH}" ]; then
+    echo "Error: Executable not found. Tried searching for ${EXECUTABLE_NAME} in ./build/${BUILD_TYPE}/ or similar."
+    exit 1
+fi
+
+if have_prog gprof ; then
+    # Run gprof on the program created
+    echo "Running application for profiling..."
+    "${EXECUTABLE_PATH}"
 
     ## Determine whether the gmon.out file exists
-    if [ -e "../../gmon.out" ]; then
-        gprof ${EXEC_FILENAME} ../../gmon.out --brief > ../../${EXEC_FILENAME}_profile_info.txt
-        cat ../../${EXEC_FILENAME}_profile_info.txt
+    if [ -e "gmon.out" ]; then # gmon.out is usually created in the directory where the executable was run
+        gprof "${EXECUTABLE_PATH}" gmon.out --brief > "${PROJECT_NAME}_profile_info.txt"
+        cat "${PROJECT_NAME}_profile_info.txt"
     else
-        echo "${RED}Profile Information Does NOT Exists. ${NC}"
-        echo "${RED}\'gprof\' might not be installed, or you didn't allow${NC}"
-        echo "${RED}the creation of profiling information.${NC}"
+        echo "${RED}Profile Information Does NOT Exist. ${NC}"
+        echo "${RED}Ensure the executable was compiled with profiling enabled (-pg flag) and run successfully to generate gmon.out.${NC}"
         echo "${RED}Continuing...${NC}"
     fi
+else
+    echo "${RED}gprof (GNU Profiler) is not installed or not in PATH.${NC}"
+    echo "${RED}This profiling script is designed for Linux environments with gprof.${NC}"
+    echo "${RED}For Windows, consider using Visual Studio's built-in profiler or other tools.${NC}"
+fi
 

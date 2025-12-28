@@ -14,7 +14,6 @@
 */
 /**
  * @author: Benrick Smit
- * @email: metatronicprogramming@hotmail.com
  * @date: 20 June 2020
  * @modified: 2 December 2020
  * 
@@ -23,6 +22,8 @@
  */
 
 #include "ThreadInfo.h"  
+
+#include <cstdint>
 
 //Constructor
 ThreadInfo::ThreadInfo(){
@@ -78,7 +79,11 @@ void ThreadInfo::set_ID(uint16_t id) {
 
 void ThreadInfo::add_task(uint32_t total_tasks_to_add) {
     // This function only increments the total number of tasks based on the number, nothing else
+    #if defined(__GNUC__) || defined(__clang__)
     const uint64_t MAX_NUMBER = __UINT32_MAX__;
+#else
+    const uint64_t MAX_NUMBER = UINT32_MAX;
+#endif
 
     // Check for overflow
     if((total_tasks_to_add + get_tasks()) == 0){
